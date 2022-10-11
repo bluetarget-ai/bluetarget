@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 from bluetarget.api_endpoint import APIEndpoint
-from bluetarget.errors import AuthorizationError, EntityNotFound
+from bluetarget.errors import AuthorizationError, EntityNotFound, ServerValidationException
 from bluetarget.model_version import ModelVersion
 
 
@@ -30,6 +30,10 @@ class Model:
         if status == 404:
             raise EntityNotFound("Model", model_id)
 
+        if status != 200:
+            raise ServerValidationException(
+                response['code'], response['description'])
+
         self.data = response
         self.set_model_id(response['id'])
 
@@ -54,6 +58,10 @@ class Model:
 
         if status == 403:
             raise AuthorizationError()
+
+        if status != 200:
+            raise ServerValidationException(
+                response['code'], response['description'])
 
         self.data = response
         self.set_model_id(response['id'])
@@ -85,7 +93,6 @@ class Model:
         return model_version
 
     def health(self):
-        print(f"models/{self.model_id}/health")
         return self.endpoint.get(
             f"models/{self.model_id}/health")
 

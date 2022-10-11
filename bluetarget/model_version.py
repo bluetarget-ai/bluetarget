@@ -32,6 +32,10 @@ class ModelVersion:
         if status == 404:
             raise EntityNotFound("Model version", model_version_id)
 
+        if status != 200:
+            raise ServerValidationException(
+                response['code'], response['description'])
+
         self.data = response
         self.set_model_version_id(response)
 
@@ -68,6 +72,10 @@ class ModelVersion:
         if status == 404:
             raise EntityNotFound("Model", self.model_id)
 
+        if status != 200:
+            raise ServerValidationException(
+                response['code'], response['description'])
+
         self.data = response
         self.set_model_version_id(response)
 
@@ -91,7 +99,7 @@ class ModelVersion:
     def deploy(self):
         response, status = self.endpoint.post(
             f"models/{self.model_id}/versions/{self.model_version_id}/deploy")
-        print(response)
+
         if status != 200:
             raise ServerValidationException(
                 response['code'], response['description'])
