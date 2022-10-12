@@ -35,7 +35,7 @@ pip install bluetarget
 BlueTarget is actively developed, and we recommend using the latest version. To update your BlueTarget installation, run:
 
 ```
-pip install --upgrade truss
+pip install --upgrade bluetarget
 ```
 
 ## How to use BlueTarget
