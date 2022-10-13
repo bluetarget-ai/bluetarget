@@ -1,6 +1,9 @@
 
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
+
+import click
+from bluetarget.model_version import ModelVersion
 
 from bluetarget.validation import validate_files, validate_model_class
 
@@ -13,6 +16,11 @@ class BlueTarget:
     api_key: str
     model_id: str
     model_version_id: str
+
+    environment: Dict = None
+    metadata: Dict = None
+    implementation: str = "py38"
+    framework: str = None
 
     model: Model
 
@@ -27,10 +35,27 @@ class BlueTarget:
         self.model_id = model_id
         self.model.set_model_id(model_id)
 
+    def set_environment(self, environment: Dict) -> None:
+        self.environment = environment
+
+    def set_metadata(self, metadata: Dict) -> None:
+        self.metadata = metadata
+
+    def set_framework(self, framework: str) -> None:
+        self.framework = framework
+
+    def set_implementation(self, implementation: Dict) -> None:
+        self.implementation = implementation
+
     def set_model_version_id(self, model_version_id: str) -> None:
         self.model_version_id = model_version_id
 
-    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, model_name: str = None, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None) -> None:
+    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, model_name: str = None, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None) -> Tuple[Model, ModelVersion]:
+
+        metadata = self.metadata if metadata == None else metadata
+        environment = self.environment if environment == None else environment
+        implementation = self.implementation if implementation == None else implementation
+        framework = self.framework if framework == None else framework
 
         if self.model_id == None:
             self.model.create(name=model_name)
@@ -45,7 +70,8 @@ class BlueTarget:
                 requirements_file=requirements_file,
                 algorithm=algorithm,
                 environment=environment,
-                implementation=implementation
+                implementation=implementation,
+                framework=framework
             )
         else:
             model_version = self.model.get_version(self.model_version_id)
@@ -62,6 +88,12 @@ class BlueTarget:
         model_version.deploy()
 
         clean_tmp()
+
+        click.secho('########################################', fg='yellow')
+        click.secho(f"### MODEL ID: {self.model_id} ###", fg='yellow')
+        click.secho('########################################', fg='yellow')
+
+        return self.model, model_version
 
     def predict(self, inputs: List):
         return self.model.predict(inputs=inputs)

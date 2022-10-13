@@ -44,7 +44,7 @@ class ModelVersion:
     def set_model_version_id(self, data):
         self.model_version_id = data['id']
 
-    def create(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None):
+    def create(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None):
         body = {
             "modelClass": model_class,
             "files": model_files,
@@ -62,6 +62,9 @@ class ModelVersion:
 
         if implementation != None:
             body["implementation"] = implementation
+
+        if framework != None:
+            body["framework"] = framework
 
         response, status = self.endpoint.post(
             f"models/{self.model_id}/version", body=body)
