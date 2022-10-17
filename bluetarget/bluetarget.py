@@ -21,6 +21,9 @@ class BlueTarget:
     metadata: Dict = None
     implementation: str = "py38"
     framework: str = None
+    algorithm: str = None
+    tag: str = None
+    model_type: str = None
 
     model: Model
 
@@ -44,18 +47,30 @@ class BlueTarget:
     def set_framework(self, framework: str) -> None:
         self.framework = framework
 
+    def set_algorithm(self, algorithm: str) -> None:
+        self.algorithm = algorithm
+
+    def set_model_type(self, model_type: str) -> None:
+        self.model_type = model_type
+
+    def set_model_version_tag(self, tag: str) -> None:
+        self.tag = tag
+
     def set_implementation(self, implementation: Dict) -> None:
         self.implementation = implementation
 
     def set_model_version_id(self, model_version_id: str) -> None:
         self.model_version_id = model_version_id
 
-    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, model_name: str = None, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None) -> Tuple[Model, ModelVersion]:
+    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, model_name: str = None, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None) -> Tuple[Model, ModelVersion]:
 
         metadata = self.metadata if metadata == None else metadata
         environment = self.environment if environment == None else environment
         implementation = self.implementation if implementation == None else implementation
         framework = self.framework if framework == None else framework
+        algorithm = self.algorithm if algorithm == None else algorithm
+        tag = self.tag if tag == None else tag
+        model_type = self.model_type if model_type == None else model_type
 
         if self.model_id == None:
             self.model.create(name=model_name)
@@ -71,7 +86,10 @@ class BlueTarget:
                 algorithm=algorithm,
                 environment=environment,
                 implementation=implementation,
-                framework=framework
+                framework=framework,
+                model_type=model_type,
+                tag=tag,
+                algorithm=algorithm
             )
         else:
             model_version = self.model.get_version(self.model_version_id)
@@ -90,7 +108,7 @@ class BlueTarget:
         clean_tmp()
 
         click.secho('########################################', fg='yellow')
-        click.secho(f"### MODEL ID: {self.model_id} ###", fg='yellow')
+        click.secho(f"### MODEL ID: {self.model.model_id} ###", fg='yellow')
         click.secho('########################################', fg='yellow')
 
         return self.model, model_version

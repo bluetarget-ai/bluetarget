@@ -68,7 +68,7 @@ class Model:
 
         return response
 
-    def create_version(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None) -> ModelVersion:
+    def create_version(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None) -> ModelVersion:
         model_version = ModelVersion(
             api_key=self.api_key, model_id=self.data["id"])
 
@@ -80,7 +80,9 @@ class Model:
             algorithm=algorithm,
             environment=environment,
             implementation=implementation,
-            framework=framework
+            framework=framework,
+            model_type=model_type,
+            tag=tag
         )
 
         return model_version
