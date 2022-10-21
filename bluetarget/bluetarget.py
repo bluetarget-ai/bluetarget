@@ -88,8 +88,7 @@ class BlueTarget:
                 implementation=implementation,
                 framework=framework,
                 model_type=model_type,
-                tag=tag,
-                algorithm=algorithm
+                tag=tag
             )
         else:
             model_version = self.model.get_version(self.model_version_id)
