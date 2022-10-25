@@ -27,6 +27,16 @@ class APIEndpoint:
 
         return response.json(), response.status_code
 
+    def put(self, path: str, body: Dict = None):
+
+        if body != None:
+            body = json.dumps(body)
+
+        response = requests.put(f'{ENDPOINT}/{path}',
+                                data=body, headers=self.__headers())
+
+        return response.json(), response.status_code
+
     def __headers(self):
         return {
             "Authorization": f"api-key {self.api_key}",

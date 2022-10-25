@@ -44,6 +44,49 @@ class ModelVersion:
     def set_model_version_id(self, data):
         self.model_version_id = data['id']
 
+    def update(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None):
+        body = {
+            "modelClass": model_class,
+            "files": model_files,
+            "requirementsFile": requirements_file
+        }
+
+        if metadata != None:
+            body["metadata"] = metadata
+
+        if environment != None:
+            body["environment"] = environment
+
+        if algorithm != None:
+            body["algorithm"] = algorithm
+
+        if implementation != None:
+            body["implementation"] = implementation
+
+        if framework != None:
+            body["framework"] = framework
+
+        if model_type != None:
+            body["type"] = model_type
+
+        if tag != None:
+            body["tag"] = tag
+
+        response, status = self.endpoint.put(
+            f"models/{self.model_id}/versions/{self.model_version_id}", body=body)
+
+        if status == 403:
+            raise AuthorizationError()
+
+        if status != 200:
+            raise ServerValidationException(
+                response['code'], response['description'])
+
+        self.data = response
+        self.set_model_version_id(response)
+
+        return response
+
     def create(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None):
         body = {
             "modelClass": model_class,
@@ -77,9 +120,6 @@ class ModelVersion:
 
         if status == 403:
             raise AuthorizationError()
-
-        if status == 404:
-            raise EntityNotFound("Model", self.model_id)
 
         if status != 200:
             raise ServerValidationException(

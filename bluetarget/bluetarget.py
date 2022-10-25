@@ -77,21 +77,26 @@ class BlueTarget:
         else:
             self.model.get(self.model_id)
 
+        params = {
+            "model_class": model_class,
+            "model_files": model_files,
+            "metadata": metadata,
+            "requirements_file": requirements_file,
+            "algorithm": algorithm,
+            "environment": environment,
+            "implementation": implementation,
+            "framework": framework,
+            "model_type": model_type,
+            "tag": tag
+        }
+
         if self.model_version_id == None:
             model_version = self.model.create_version(
-                model_class=model_class,
-                model_files=model_files,
-                metadata=metadata,
-                requirements_file=requirements_file,
-                algorithm=algorithm,
-                environment=environment,
-                implementation=implementation,
-                framework=framework,
-                model_type=model_type,
-                tag=tag
+                **params
             )
         else:
             model_version = self.model.get_version(self.model_version_id)
+            model_version.update(**params)
 
         files = [*model_files, requirements_file]
 
