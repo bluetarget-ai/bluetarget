@@ -1,6 +1,6 @@
 
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import click
 from bluetarget.model_version import ModelVersion
@@ -38,6 +38,9 @@ class BlueTarget:
         self.model_id = model_id
         self.model.set_model_id(model_id)
 
+    def set_model_version_id(self, model_version_id: str) -> None:
+        self.model_version_id = model_version_id
+
     def set_environment(self, environment: Dict) -> None:
         self.environment = environment
 
@@ -59,50 +62,80 @@ class BlueTarget:
     def set_implementation(self, implementation: Dict) -> None:
         self.implementation = implementation
 
-    def set_model_version_id(self, model_version_id: str) -> None:
-        self.model_version_id = model_version_id
+    def retrieve_optional_parameters(self, **kwargs) -> Dict[str, Any]:
 
-    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, model_name: str = None, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None) -> Tuple[Model, ModelVersion]:
+        metadata = kwargs.pop("metadata", self.metadata)
+        environment = kwargs.pop("environment", self.environment)
+        implementation = kwargs.pop("implementation", self.implementation)
+        framework = kwargs.pop("framework", self.framework)
+        algorithm = kwargs.pop("algorithm", self.algorithm)
+        tag = kwargs.pop("tag", self.tag)
+        model_type = kwargs.pop("model_type", self.model_type)
+        model_name = kwargs.pop("model_name", "")
 
-        metadata = self.metadata if metadata == None else metadata
-        environment = self.environment if environment == None else environment
-        implementation = self.implementation if implementation == None else implementation
-        framework = self.framework if framework == None else framework
-        algorithm = self.algorithm if algorithm == None else algorithm
-        tag = self.tag if tag == None else tag
-        model_type = self.model_type if model_type == None else model_type
-
-        if self.model_id == None:
-            self.model.create(name=model_name)
-        else:
-            self.model.get(self.model_id)
-
-        params = {
-            "model_class": model_class,
-            "model_files": model_files,
-            "metadata": metadata,
-            "requirements_file": requirements_file,
-            "algorithm": algorithm,
-            "environment": environment,
-            "implementation": implementation,
-            "framework": framework,
-            "model_type": model_type,
-            "tag": tag
+        return {
+            'metadata': metadata,
+            'environment': environment,
+            'implementation': implementation,
+            'framework': framework,
+            'algorithm': algorithm,
+            'tag': tag,
+            'model_type': model_type,
+            'model_name': model_name
         }
 
-        if self.model_version_id == None:
-            model_version = self.model.create_version(
-                **params
-            )
-        else:
-            model_version = self.model.get_version(self.model_version_id)
-            model_version.update(**params)
+    def deploy_new_version(self, model_id: str, model_class: str, model_files: List[str], requirements_file: str, **kwargs):
+        files = [*model_files, requirements_file]
+
+        validate_files(files)
+        validate_model_class(model_class, model_files)
+
+        parameters = self.retrieve_optional_parameters(**kwargs)
+
+        parameters['model_class'] = model_class
+        parameters['model_files'] = model_files
+        parameters['requirements_file'] = requirements_file
+
+        self.model.get(model_id)
+
+        model_version = self.model.create_version(
+            **parameters
+        )
+
+        self.__deploy(files, model_version)
+
+        return self.model, model_version
+
+    def deploy(self, model_class: str, model_files: List[str], requirements_file: str, **kwargs) -> Tuple[Model, ModelVersion]:
 
         files = [*model_files, requirements_file]
 
         validate_files(files)
         validate_model_class(model_class, model_files)
 
+        parameters = self.retrieve_optional_parameters(**kwargs)
+        parameters['model_class'] = model_class
+        parameters['model_files'] = model_files
+        parameters['requirements_file'] = requirements_file
+
+        if self.model_id == None:
+            self.model.create(name=parameters["model_name"], **kwargs)
+        else:
+            self.model.get(self.model_id)
+
+        if self.model_version_id == None:
+            model_version = self.model.create_version(
+                **parameters
+            )
+        else:
+            model_version = self.model.get_version(self.model_version_id)
+            model_version.update(**parameters)
+
+        self.__deploy(files, model_version)
+
+        return self.model, model_version
+
+    def __deploy(self, files: List[str], model_version: ModelVersion):
         package = prepare_package(files)
 
         model_version.upload_package(package_url=package)
@@ -114,8 +147,6 @@ class BlueTarget:
         click.secho('########################################', fg='yellow')
         click.secho(f"### MODEL ID: {self.model.model_id} ###", fg='yellow')
         click.secho('########################################', fg='yellow')
-
-        return self.model, model_version
 
     def predict(self, inputs: List):
         return self.model.predict(inputs=inputs)

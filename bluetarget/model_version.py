@@ -44,33 +44,15 @@ class ModelVersion:
     def set_model_version_id(self, data):
         self.model_version_id = data['id']
 
-    def update(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None):
+    def update(self, model_class: str, model_files: List[str], requirements_file: str,  **kwargs):
         body = {
             "modelClass": model_class,
             "files": model_files,
             "requirementsFile": requirements_file
         }
 
-        if metadata != None:
-            body["metadata"] = metadata
-
-        if environment != None:
-            body["environment"] = environment
-
-        if algorithm != None:
-            body["algorithm"] = algorithm
-
-        if implementation != None:
-            body["implementation"] = implementation
-
-        if framework != None:
-            body["framework"] = framework
-
-        if model_type != None:
-            body["type"] = model_type
-
-        if tag != None:
-            body["tag"] = tag
+        for key in kwargs:
+            body[key] = kwargs[key]
 
         response, status = self.endpoint.put(
             f"models/{self.model_id}/versions/{self.model_version_id}", body=body)
@@ -87,33 +69,15 @@ class ModelVersion:
 
         return response
 
-    def create(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None):
+    def create(self, model_class: str, model_files: List[str], requirements_file: str, **kwargs):
         body = {
             "modelClass": model_class,
             "files": model_files,
             "requirementsFile": requirements_file
         }
 
-        if metadata != None:
-            body["metadata"] = metadata
-
-        if environment != None:
-            body["environment"] = environment
-
-        if algorithm != None:
-            body["algorithm"] = algorithm
-
-        if implementation != None:
-            body["implementation"] = implementation
-
-        if framework != None:
-            body["framework"] = framework
-
-        if model_type != None:
-            body["type"] = model_type
-
-        if tag != None:
-            body["tag"] = tag
+        for key in kwargs:
+            body[key] = kwargs[key]
 
         response, status = self.endpoint.post(
             f"models/{self.model_id}/version", body=body)

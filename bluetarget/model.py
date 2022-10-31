@@ -39,20 +39,14 @@ class Model:
 
         return response
 
-    def create(self, name: str, description: str = None, serverId: str = None, replicas: int = None):
+    def create(self, name: str, **kwargs):
 
         body = {
             "name": name
         }
 
-        if description != None:
-            body["description"] = description
-
-        if serverId != None:
-            body["serverId"] = serverId
-
-        if replicas != None:
-            body["replicas"] = replicas
+        for key in kwargs:
+            body[key] = kwargs[key]
 
         response, status = self.endpoint.post("models/", body=body)
 
@@ -68,21 +62,15 @@ class Model:
 
         return response
 
-    def create_version(self, model_class: str, model_files: List[str], requirements_file: str, metadata: Dict = None, environment: Dict = None, algorithm: str = None, implementation: str = None, framework: str = None, model_type: str = None, tag: str = None) -> ModelVersion:
+    def create_version(self, model_class: str, model_files: List[str], requirements_file: str, **kwargs) -> ModelVersion:
         model_version = ModelVersion(
             api_key=self.api_key, model_id=self.data["id"])
 
         model_version.create(
             model_class=model_class,
             model_files=model_files,
-            metadata=metadata,
             requirements_file=requirements_file,
-            algorithm=algorithm,
-            environment=environment,
-            implementation=implementation,
-            framework=framework,
-            model_type=model_type,
-            tag=tag
+            **kwargs
         )
 
         return model_version
