@@ -39,3 +39,14 @@ class Server(str, Enum):
     cpu_optimized_large = 'CPU_OPTIMIZED_LARGE'
     gpu_optimized_xlarge = 'GPU_OPTIMIZED_XLARGE'
     gpu_optimized_2xlarge = 'GPU_OPTIMIZED_2XLARGE'
+
+
+class MonitorSchemaType(str, Enum):
+    STRING = 'STRING'
+    INT = 'INT'
+    FLOAT = 'FLOAT'
+
+
+class MonitorPredictionType(str, Enum):
+    CATEGORICAL = 'CATEGORICAL'
+    NUMERIC = 'NUMERIC'
