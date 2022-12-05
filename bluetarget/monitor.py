@@ -1,7 +1,7 @@
 import pandas
 from typing import List, Optional
 
-from bluetarget.entities import Prediction, PredictionActual, ColumnMapping, MonitorVersion, Monitor as MonitorModel
+from bluetarget.entities import Prediction, PredictionActual, ColumnMapping, ModelSchema, ModelSchemaVersion
 
 from bluetarget.api_endpoint import APIEndpoint
 from bluetarget.errors import AuthorizationError, ServerValidationException
@@ -26,9 +26,9 @@ class Monitor:
 
         self.endpoint = APIEndpoint(api_key)
 
-    def create(self, monitor: MonitorModel):
+    def create(self, model_schema: ModelSchema):
 
-        body = monitor.dict()
+        body = model_schema.dict()
 
         response, status = self.endpoint.post("monitor/", body=body)
 
@@ -36,23 +36,28 @@ class Monitor:
             raise AuthorizationError()
 
         if status != 200:
-            raise ServerValidationException(
-                response['code'], response['description'])
+            raise ServerValidationException(status, response['code'])
+
+        self.monitor_id = response["id"]
 
         return response
 
-    def create_version(self, monitor_id: str, monitor_version: MonitorVersion):
-        body = monitor_version.dict()
+    def create_version(self, model_schema_id: str, model_schema_version: ModelSchemaVersion):
+        body = model_schema_version.dict()
+
+        if "model_schema" in body:
+            body["schema"] = body.pop("model_schema")
 
         response, status = self.endpoint.post(
-            f"monitor{monitor_id}/versions", body=body)
+            f"monitor/{model_schema_id}/versions", body=body)
 
         if status == 403:
             raise AuthorizationError()
 
         if status != 200:
-            raise ServerValidationException(
-                response['code'], response['description'])
+            raise ServerValidationException(status, response['code'])
+
+        self.version_id = response["id"]
 
         return response
 
@@ -73,8 +78,19 @@ class Monitor:
         response, status = self.endpoint.get(
             f"monitor/{self.monitor_id}/versions/{self.version_id}/download-data", query=query)
 
-        print(response)
-        print(status)
+        if status == 403:
+            raise AuthorizationError()
+
+        if status != 200:
+            raise ServerValidationException(status, response['code'])
+
+        url = response["url"]
+
+        response = requests.get(url)
+
+        buffer = BytesIO(response.content)
+
+        return pandas.read_parquet(buffer)
 
     def add_reference_dataset(self, dataset: pandas.DataFrame, column_mapping: ColumnMapping):
 
@@ -87,8 +103,7 @@ class Monitor:
             raise AuthorizationError()
 
         if status != 200:
-            raise ServerValidationException(
-                response['code'], response['description'])
+            raise ServerValidationException(status, response['code'])
 
         url = response["uploadUrl"]
         fields = response["formData"]
@@ -114,8 +129,7 @@ class Monitor:
             raise AuthorizationError()
 
         if status != 200:
-            raise ServerValidationException(
-                response['code'], response['description'])
+            raise ServerValidationException(status, response['code'])
 
         return response
 
@@ -132,7 +146,6 @@ class Monitor:
             raise AuthorizationError()
 
         if status != 200:
-            raise ServerValidationException(
-                response['code'], response['description'])
+            raise ServerValidationException(status, response['code'])
 
         return response

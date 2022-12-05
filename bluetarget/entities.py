@@ -5,16 +5,16 @@ from typing import Dict, Union, List, Optional
 EntityValue = Union[str, int, float]
 
 
-class Monitor(BaseModel):
+class ModelSchema(BaseModel):
     name: str
-    id: Optional[str] = None
+    monitorId: Optional[str] = None
     description: Optional[str] = None
+    predictionType: MonitorPredictionType
 
 
-class MonitorVersion(BaseModel):
-    id: Optional[str] = None
+class ModelSchemaVersion(BaseModel):
+    versionId: Optional[str] = None
     model_schema: Dict[str, MonitorSchemaType]
-    prediction_type: MonitorPredictionType
 
 
 class Prediction(BaseModel):
