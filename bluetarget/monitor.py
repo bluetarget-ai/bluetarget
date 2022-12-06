@@ -118,8 +118,13 @@ class Monitor:
 
     def log_predictions(self, predictions: List[Prediction]):
 
+        data = []
+
+        for prediction in predictions:
+            data.append(prediction.dict())
+
         body = {
-            "data": predictions,
+            "data": data,
         }
 
         response, status = self.endpoint.post(
@@ -135,8 +140,13 @@ class Monitor:
 
     def log_actuals(self, actuals: List[PredictionActual]):
 
+        data = []
+
+        for actual in actuals:
+            data.append(actual.dict())
+
         body = {
-            "data": actuals,
+            "data": data,
         }
 
         response, status = self.endpoint.post(

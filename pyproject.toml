@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bluetarget"
-version = "0.2.5"
+version = "0.2.6"
 description = "Deploy, monitor and explain your machine learning models"
 authors = ["Sergio Kaz <sergio@bluetarget.ai>"]
 readme = "README.md"
