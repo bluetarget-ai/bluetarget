@@ -116,6 +116,53 @@ class Monitor:
         files = {'file': ('file.parquet', buffer)}
         response = requests.post(url, data=fields, files=files)
 
+    def log_batch_predictions(self, dataset: pandas.DataFrame, column_mapping: ColumnMapping):
+        mapping = column_mapping.dict()
+
+        features = mapping["features"]
+
+        if "prediction" in mapping:
+            features.append("prediction")
+            dataset.rename(
+                columns={mapping["prediction"]: "prediction"}, inplace=True)
+
+        if "target" in mapping:
+            features.append("target")
+            dataset.rename(
+                columns={mapping["target"]: "target"}, inplace=True)
+
+        if "prediction_date" in mapping:
+            features.append("prediction_date")
+            dataset.rename(
+                columns={mapping["prediction_date"]: "prediction_date"}, inplace=True)
+
+        if "prediction_id" in mapping:
+            features.append("prediction_id")
+            dataset.rename(
+                columns={mapping["prediction_id"]: "prediction_id"}, inplace=True)
+
+        dataset = dataset[features]
+
+        response, status = self.endpoint.post(
+            f"monitor/{self.monitor_id}/versions/{self.version_id}/upload-batch")
+
+        if status == 403:
+            raise AuthorizationError()
+
+        if status != 200:
+            raise ServerValidationException(status, response['code'])
+
+        url = response["uploadUrl"]
+        fields = response["formData"]
+
+        buffer = BytesIO()
+        dataset.to_parquet(buffer, engine="pyarrow")
+
+        buffer.seek(0)
+
+        files = {'file': ('file.parquet', buffer)}
+        response = requests.post(url, data=fields, files=files)
+
     def log_predictions(self, predictions: List[Prediction]):
 
         data = []
